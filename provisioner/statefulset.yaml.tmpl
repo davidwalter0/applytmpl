@@ -1,0 +1,149 @@
+# ------------------------- StorageClass ------------------------- #
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: {{ env "STORAGE_CLASS_NAME" }}
+# typically storage domain/type like storage.io/type
+provisioner: {{ env "STORAGE_PROVISIONER_NAME" }}
+
+
+# ------------------------- ServiceAccount ------------------------- #
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    k8s-app: {{ env "NFS_PROVISIONER_NAME" }}
+    app: {{ env "NFS_PROVISIONER_NAME" }}
+  name: {{ env "NFS_PROVISIONER_NAME" }}
+  namespace: {{ env "NAMESPACE" }}
+
+# ------------------- ClusterRole ------------------- #
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1alpha1
+metadata:
+  name: {{ env "NFS_PROVISIONER_NAME" }}
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "update"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["watch", "create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["services", "endpoints"]
+    verbs: ["get"]
+  - apiGroups: ["extensions"]
+    resources: ["podsecuritypolicies"]
+    resourceNames: ["{{ env "NFS_PROVISIONER_NAME" }}"]
+    verbs: ["use"]
+
+# ------------------- ClusterRoleBinding ------------------- #
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: {{ env "NFS_PROVISIONER_NAME" }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ env "NFS_PROVISIONER_NAME" }}
+subjects:
+- kind: ServiceAccount
+  name: {{ env "NFS_PROVISIONER_NAME" }}
+  namespace: {{ env "NAMESPACE" }}
+
+# ------------------------- Service ------------------------- #
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ env "NFS_PROVISIONER_NAME" }}
+  labels:
+    app: {{ env "NFS_PROVISIONER_NAME" }}
+  namespace: {{ env "NAMESPACE" }}
+spec:
+  ports:
+    - name: nfs
+      port: 2049
+    - name: mountd
+      port: 20048
+    - name: rpcbind
+      port: 111
+    - name: rpcbind-udp
+      port: 111
+      protocol: UDP
+  selector:
+    app: {{ env "NFS_PROVISIONER_NAME" }}
+
+# ------------------------- StatefulSet ------------------------- #
+---
+kind: StatefulSet
+apiVersion: apps/v1beta1
+metadata:
+  name: {{ env "NFS_PROVISIONER_NAME" }}
+  namespace: {{ env "NAMESPACE" }}
+spec:
+  serviceName: "{{ env "NFS_PROVISIONER_NAME" }}"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ env "NFS_PROVISIONER_NAME" }}
+      annotations:
+        pod.alpha.kubernetes.io/initialized: "true"
+    spec:
+      terminationGracePeriodSeconds: 10
+      serviceAccount: {{ env "NFS_PROVISIONER_NAME" }}
+      containers:
+        - name: {{ env "NFS_PROVISIONER_NAME" }}
+          image: {{ env "NFS_PROVISIONER_IMAGE" }}
+          ports:
+            - name: nfs
+              containerPort: 2049
+            - name: mountd
+              containerPort: 20048
+            - name: rpcbind
+              containerPort: 111
+            - name: rpcbind-udp
+              containerPort: 111
+              protocol: UDP
+          securityContext:
+            capabilities:
+              add:
+                - DAC_READ_SEARCH
+                - SYS_RESOURCE
+          args:
+            - '-provisioner={{ env "STORAGE_PROVISIONER_NAME" }}'
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: SERVICE_NAME
+              value: {{ env "NFS_PROVISIONER_NAME" }}
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          imagePullPolicy: "IfNotPresent"
+          volumeMounts:
+            - name: export-volume
+              mountPath: /export
+      volumes:
+        - name: export-volume
+          hostPath:
+            path: /srv
+
+
+# local variables:
+# mode: yaml
+# end:

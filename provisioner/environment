@@ -1,0 +1,29 @@
+#!/bin/bash
+# many features are limited by naming conventions outside of kubernetes like dns...
+#  FirstSeen         LastSeen        Count        From                
+#  1m                17s                17        statefulset                        
+# SubObjectPath        Type                Reason                        
+#                      Warning             FailedCreate                  
+# Message
+# create Pod stateful-provisioner-client-0 in StatefulSet
+# stateful-provisioner-client failed error: Pod
+# "stateful-provisioner-client-0" is invalid:
+# spec.containers[0].ports[0].name: Invalid value:
+# "stateful-provisioner-client": must be no more than 15 characters
+
+export STORAGE_CLASS_NAME=nfs-s1
+export STORAGE_PROVISIONER_NAME=storage.io/nfs
+export PROVISIONER_CLIENT_NAME=nfs-pv-client
+export BUSYBOX_IMAGE=gcr.io/google_containers/busybox:1.24
+
+########################################################################
+# 
+########################################################################
+export NFS_PROVISIONER_IMAGE=quay.io/kubernetes_incubator/nfs-provisioner:v1.0.8
+export NFS_PROVISIONER_NAME=nfs-s01
+export NAMESPACE=nfs-provisioner
+
+
+# local variables:
+# mode: shell-script
+# end:

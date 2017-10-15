@@ -1,0 +1,253 @@
+# ------------------------- Namespaced Client StatefulSet ------------------------- #
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: {{ env "PROVISIONER_CLIENT_NAME" }}
+  namespace: {{ env "NAMESPACE" }}
+spec:
+  serviceName: {{ env "PROVISIONER_CLIENT_NAME" }}
+  replicas: 2
+  selector:
+    matchLabels:
+      app: {{ env "PROVISIONER_CLIENT_NAME" }}
+  template:
+    metadata:
+      labels:
+        app: {{ env "PROVISIONER_CLIENT_NAME" }}
+    spec:
+      containers:
+      - name: {{ env "PROVISIONER_CLIENT_NAME" }}
+        image: {{ env "BUSYBOX_IMAGE" }}
+        command:
+          - "/bin/sh"
+        args:
+          - "-c"
+          - while true; do
+              (
+                printf "$(date +%Y.%m.%d.%H.%M.%S) HOSTNAME            ${HOSTNAME}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) NODE_NAME           ${NODE_NAME}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) POD_NAME            ${POD_NAME}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) POD_NAMESPACE       ${POD_NAMESPACE}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) POD_IP              ${POD_IP}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) POD_SERVICE_ACCOUNT ${POD_SERVICE_ACCOUNT}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) POD_SERVICE_ACCOUNT ${POD_SERVICE_ACCOUNT}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) CPU_REQUEST         ${CPU_REQUEST}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) CPU_LIMIT           ${CPU_LIMIT}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) MEM_REQUEST         ${MEM_REQUEST}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) MEM_LIMIT           ${MEM_LIMIT}\n";
+              ) > /mnt/${POD_NAME}.SUCCESS ;
+              sleep 10;
+            done;
+        ports:
+        - name: {{ env "PROVISIONER_CLIENT_NAME" }}
+          containerPort: 80
+
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "125m"
+          limits:
+            memory: "64Mi"
+            cpu: "250m"
+
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: POD_SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.serviceAccountName
+          - name: CPU_REQUEST
+            valueFrom:
+              resourceFieldRef:
+                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                resource: requests.cpu
+          - name: CPU_LIMIT
+            valueFrom:
+              resourceFieldRef:
+                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                resource: limits.cpu
+          - name: MEM_REQUEST
+            valueFrom:
+              resourceFieldRef:
+                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                resource: requests.memory
+          - name: MEM_LIMIT
+            valueFrom:
+              resourceFieldRef:
+                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                resource: limits.memory
+
+        volumeMounts:
+          - name: nfs-pvc
+            mountPath: "/mnt"
+  volumeClaimTemplates:
+  - metadata:
+      name: nfs-pvc
+      annotations:
+        volume.beta.kubernetes.io/storage-class: {{ env "STORAGE_CLASS_NAME" }}
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+
+# ------------------------- Service ------------------------- #
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ env "PROVISIONER_CLIENT_NAME" }}
+  labels:
+    app: {{ env "PROVISIONER_CLIENT_NAME" }}
+  namespace: {{ env "NAMESPACE" }}
+spec:
+  ports:
+  - port: 80
+    name: {{ env "PROVISIONER_CLIENT_NAME" }}
+  # clusterIP: None
+  selector:
+    app: {{ env "PROVISIONER_CLIENT_NAME" }}
+
+# ------------------------- Default NS Client StatefulSet ------------------------- #
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: {{ env "PROVISIONER_CLIENT_NAME" }}
+spec:
+  serviceName: {{ env "PROVISIONER_CLIENT_NAME" }}
+  replicas: 2
+  selector:
+    matchLabels:
+      app: {{ env "PROVISIONER_CLIENT_NAME" }}
+  template:
+    metadata:
+      labels:
+        app: {{ env "PROVISIONER_CLIENT_NAME" }}
+    spec:
+      containers:
+      - name: {{ env "PROVISIONER_CLIENT_NAME" }}
+        image: {{ env "BUSYBOX_IMAGE" }}
+        command:
+          - "/bin/sh"
+        args:
+          - "-c"
+          - while true; do
+              (
+                printf "$(date +%Y.%m.%d.%H.%M.%S) HOSTNAME            ${HOSTNAME}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) NODE_NAME           ${NODE_NAME}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) POD_NAME            ${POD_NAME}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) POD_NAMESPACE       ${POD_NAMESPACE}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) POD_IP              ${POD_IP}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) POD_SERVICE_ACCOUNT ${POD_SERVICE_ACCOUNT}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) POD_SERVICE_ACCOUNT ${POD_SERVICE_ACCOUNT}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) CPU_REQUEST         ${CPU_REQUEST}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) CPU_LIMIT           ${CPU_LIMIT}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) MEM_REQUEST         ${MEM_REQUEST}\n";
+                printf "$(date +%Y.%m.%d.%H.%M.%S) MEM_LIMIT           ${MEM_LIMIT}\n";
+              ) > /mnt/${POD_NAME}.SUCCESS ;
+              sleep 10;
+            done;
+        ports:
+        - name: {{ env "PROVISIONER_CLIENT_NAME" }}
+          containerPort: 80
+
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "125m"
+          limits:
+            memory: "64Mi"
+            cpu: "250m"
+
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: POD_SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.serviceAccountName
+          - name: CPU_REQUEST
+            valueFrom:
+              resourceFieldRef:
+                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                resource: requests.cpu
+          - name: CPU_LIMIT
+            valueFrom:
+              resourceFieldRef:
+                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                resource: limits.cpu
+          - name: MEM_REQUEST
+            valueFrom:
+              resourceFieldRef:
+                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                resource: requests.memory
+          - name: MEM_LIMIT
+            valueFrom:
+              resourceFieldRef:
+                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                resource: limits.memory
+
+        volumeMounts:
+          - name: nfs-pvc
+            mountPath: "/mnt"
+  volumeClaimTemplates:
+  - metadata:
+      name: nfs-pvc
+      annotations:
+        volume.beta.kubernetes.io/storage-class: {{ env "STORAGE_CLASS_NAME" }}
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+# ------------------------- Default NS Service ------------------------- #
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ env "PROVISIONER_CLIENT_NAME" }}
+  labels:
+    app: {{ env "PROVISIONER_CLIENT_NAME" }}
+spec:
+  ports:
+  - port: 80
+    name: {{ env "PROVISIONER_CLIENT_NAME" }}
+  # clusterIP: None
+  selector:
+    app: {{ env "PROVISIONER_CLIENT_NAME" }}
+
+
+# local variables:
+# mode: yaml
+# end:
