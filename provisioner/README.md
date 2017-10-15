@@ -19,7 +19,8 @@ go get github.com/kubernetes-incubator/external-storage
 Do a few actions with a log loop in a client
 - edit environment file
 - source environment
-- create
+- create the namespace from your environment file
+- create the provisioner and stateful client sets in 2 namespaces
 - acquire leases automatically
 - list the output
 - cleanup
@@ -27,6 +28,7 @@ Do a few actions with a log loop in a client
 
 ```
 $ cd workdir
+$ kubectl create ns nfs-provisioner
 $ . environment ; for file in *.tmpl; do cat ${file} | applytmpl | tee ${file%.tmpl}; done
 $ kubectl apply -f .
 $ kubectl get sc,pv,pvc,po,statefulsets,deploy,rc,rs,secret,svc,ep --namespace=nfs-provisioner
