@@ -1,0 +1,10 @@
+# Should succeed if environment is sourced
+# source in bash by
+# . example/environment
+---
+- name: '{{ env "PROJECT" }}'
+  hosts: {{ env "HOSTS" }}
+  # vars:
+  tasks:
+  - name: echo
+    shell: echo '{{ env "TEXT" }}'
