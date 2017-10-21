@@ -14,25 +14,6 @@ var env = make(map[string]string)
 var err error
 var text []byte
 
-// errors list of problems during template processing
-var errors []string
-
-// Env lookup name return value
-func Env(name string) (text string) {
-	text = os.Getenv(name)
-	if len(text) == 0 {
-		if len(errors) == 0 {
-			errors = append(errors, fmt.Sprintf("Template Processing Error"))
-		}
-		errors = append(errors, fmt.Sprintf("env var unset: %s", name))
-	}
-	return
-}
-
-var fmap = template.FuncMap{
-	"env": Env,
-}
-
 var tmpl *template.Template
 var buffer = new(bytes.Buffer)
 
@@ -57,8 +38,8 @@ func main() {
 		log.Printf("%v.\n", err)
 		os.Exit(3)
 	}
-
-	tmpl = template.New("TemplateApplyString")
+	// lookup variables and process them first
+	tmpl = template.New("TemplateApplyEnv")
 	tmpl = tmpl.Funcs(fmap)
 	tmpl, err = tmpl.Parse(string(text))
 	if err != nil {
@@ -72,5 +53,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, strings.Join(errors, "\n"))
 		os.Exit(1)
 	}
+
+	text = buffer.Bytes()
 	fmt.Print(buffer)
 }

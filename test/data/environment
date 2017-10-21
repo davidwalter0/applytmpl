@@ -1,0 +1,21 @@
+#!/bin/bash
+export WRAP_BUFFER_TRACE_ENABLE=true
+export APP_HOST=example.com ;
+export APP_PORT=8883 ;
+export APP_CERT=${TEST_SERVER_DIR}/server.pem ;
+export APP_KEY=${TEST_SERVER_DIR}/server.key ; 
+export APP_PATH=data;
+export APP_TRACE_DETAILED=true
+export GOPATH=/go
+
+
+export NAMESPACE=testing-ns
+export SOME_FILE=data/something
+export ID_ED25519=data/id_ed25519.pub
+export ID_ED25519_URL=http://example.com:8882/id_ed25519.pub
+export ID_ED25519_URLS=https://example.com:8883/id_ed25519.pub
+export SUBJECT="/C=US/ST=New-York/L=NYC/O=example.com/OU=vpn1/CN=someone@example.com"
+
+# local variables:
+# mode: shell-script
+# end:

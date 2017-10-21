@@ -66,9 +66,11 @@ value of fails.yaml
 cat example/fails.yaml | ./applytmpl | tee example/fails-processed.yaml
 ```
 
+
 ---
+New tests in test/
 
-TODO
-
-- add source template file line numbers to errors encountered during
-  processing
+```
+cd test
+make
+```

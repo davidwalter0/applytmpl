@@ -23,7 +23,6 @@ export NFS_PROVISIONER_IMAGE=quay.io/kubernetes_incubator/nfs-provisioner:v1.0.8
 export NFS_PROVISIONER_NAME=nfs-s01
 export NAMESPACE=nfs-provisioner
 
-
 # local variables:
 # mode: shell-script
 # end:
