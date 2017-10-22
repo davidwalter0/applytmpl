@@ -320,8 +320,8 @@ func Atoi(s string) int {
 	return int(n)
 }
 
-// Capitalize the first character of string
-func Capitalize(s string) string {
+// UCase the first character of string
+func UCase(s string) string {
 	s = Trim(s)
 	if len(s) > 0 {
 		return strings.ToUpper(s[0:1]) + s[1:]
@@ -391,6 +391,58 @@ func Mod(l, r int) string {
 	return fmt.Sprintf("%d", l%r)
 }
 
+var Environment map[string]string = make(map[string]string, 0)
+
+func loadEnv() {
+	env_array := os.Environ()
+	for _, env := range env_array {
+		parts := strings.SplitN(env, "=", 2)
+		k, v := string(parts[0]), string(parts[1])
+		Environment[k] = v
+
+	}
+}
+
+// upperCase text
+func upperCase(text string) string {
+	var upperCased = text
+	if len(text) > 0 {
+		upperCased = strings.ToUpper(text[0:1]) + strings.ToLower(text[1:])
+	}
+	return upperCased
+}
+
+// downCase text
+func downCase(text string) string {
+	var downCased = Trim(text)
+	if len(text) > 0 {
+		downCased = strings.ToLower(text)
+	}
+	return downCased
+}
+
+// LCamelCase string delimited by "_" AA_bb_Cc return aaBbCc
+func LCamelCase(arg string) (text string) {
+	words := strings.Split(Trim(arg), "_")
+	for i, word := range words {
+		if i == 0 {
+			text += downCase(word)
+		} else {
+			text += upperCase(word)
+		}
+	}
+	return
+}
+
+// UCamelCase string delimited by "_" AA_bb_Cc return AaBbCc
+func UCamelCase(arg string) (text string) {
+	words := strings.Split(Trim(arg), "_")
+	for _, word := range words {
+		text += upperCase(word)
+	}
+	return
+}
+
 var fmap = template.FuncMap{
 	"cat":          Cat,
 	"nth":          Nth,
@@ -414,7 +466,7 @@ var fmap = template.FuncMap{
 	"generate":     Generate,
 	"generateInt":  GenerateInt,
 	"atoi":         Atoi,
-	"capitalize":   Capitalize,
+	"upperCase":    UCase,
 	"upper":        Upper,
 	"lower":        Lower,
 	"in":           In,

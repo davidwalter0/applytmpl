@@ -31,6 +31,8 @@ func main() {
 		parts := strings.SplitN(e, "=", 2)
 		k, v := string(parts[0]), string(parts[1])
 		env[k] = v
+		env[UCamelCase(k)] = v
+		env[LCamelCase(k)] = v
 	}
 
 	text, err = ioutil.ReadAll(os.Stdin)
