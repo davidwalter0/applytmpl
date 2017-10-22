@@ -69,9 +69,21 @@ metadata:
   value: |
     {{ range $n := generate 20 true }}{{ $n }}{{end}}
 
+- name: generatorInt
+  value: |
+    {{ range $n := generateInt 20 }}{{ add $n 1 }} {{end}}
+
 - name: generator2
   value: |
     {{ range $n := generate 20 false }}{{ $n }}{{end}}
+
+- name: math
+  value: |
+    add  2 |{{ range $n := generateInt 8}}{{ add  $n  2 }} {{end}}
+    sub  2 |{{ range $n := generateInt 8}}{{ sub  $n  2 }} {{end}}
+    div  2 |{{ range $n := generateInt 8}}{{ div  $n  2 }} {{end}}
+    mult 2 |{{ range $n := generateInt 8}}{{ mult $n  2 }} {{end}}
+    mod  2 |{{ range $n := generateInt 8}}{{ mod  $n  2 }} {{end}}
 
 
 # local variables:

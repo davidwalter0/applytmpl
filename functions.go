@@ -264,6 +264,19 @@ func Load(filename string) []byte {
 	return text
 }
 
+// GenerateInt an integer array from [0..n]
+func GenerateInt(n int) (ints []int) {
+	var i int
+	ints = make([]int, 0)
+	if i >= 0 {
+		for i = 0; i < n; i++ {
+			ints = append(ints, i)
+		}
+	}
+
+	return
+}
+
 // Generate an integer array from [0..n] optionally zerofilled for
 // consistent name extension use
 func Generate(n int, zerofill bool) (text []string) {
@@ -351,6 +364,33 @@ var envMap = template.FuncMap{
 	"env": Env,
 }
 
+// func SplitDigits(lhs, rhs string) (l, r int) {
+// 	l, _ = strconv.Atoi(lhs)
+// 	r, _ = strconv.Atoi(rhs)
+// 	return
+// }
+
+func Add(l, r int) string {
+	//	l, r := SplitDigits(lhs, rhs)
+	return fmt.Sprintf("%d", l+r)
+}
+func Sub(l, r int) string {
+	//	l, r := SplitDigits(lhs, rhs)
+	return fmt.Sprintf("%d", l-r)
+}
+func Div(l, r int) string {
+	//	l, r := SplitDigits(lhs, rhs)
+	return fmt.Sprintf("%d", l/r)
+}
+func Mult(l, r int) string {
+	//	l, r := SplitDigits(lhs, rhs)
+	return fmt.Sprintf("%d", l*r)
+}
+func Mod(l, r int) string {
+	//	l, r := SplitDigits(lhs, rhs)
+	return fmt.Sprintf("%d", l%r)
+}
+
 var fmap = template.FuncMap{
 	"cat":          Cat,
 	"nth":          Nth,
@@ -372,9 +412,15 @@ var fmap = template.FuncMap{
 	"file":         File,
 	"tostring":     ToString,
 	"generate":     Generate,
+	"generateInt":  GenerateInt,
 	"atoi":         Atoi,
 	"capitalize":   Capitalize,
 	"upper":        Upper,
 	"lower":        Lower,
 	"in":           In,
+	"add":          Add,
+	"sub":          Sub,
+	"div":          Div,
+	"mult":         Mult,
+	"mod":          Mod,
 }
