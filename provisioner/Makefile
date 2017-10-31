@@ -10,13 +10,23 @@ export NFS_PROVISIONER_NAME=nfs-s01
 export NAMESPACE=nfs-provisioner
 export kubectl=${GOPATH}/bin/kubectl  --kubeconfig=${PWD}/cluster/auth/kubeconfig
 
+.PHONY: yaml
+
+%.yaml: %.yaml.tmpl Makefile
+	${GOPATH}/bin/applytmpl < $< > $@
+
 all:
 	@echo make apply builds using the environment variables configured
 	@echo make status shows the status of items
+	@echo make yaml recreates the .yaml from .tmpl
 
-apply:
+yaml: $(patsubst %.yaml.tmpl,%.yaml,$(wildcard *.yaml.tmpl))
+	@echo $@ build complete $^
+
+apply: yaml
 	for file in *.tmpl; do ${GOPATH}/bin/applytmpl < $${file} > $${file%.tmpl}; done
 	$(kubectl) apply -f .
+
 status:
 	$(kubectl) get po,statefulsets,deploy,svc
 	$(kubectl) get po,statefulsets,deploy,svc --namespace=nfs-provisioner
@@ -55,3 +65,7 @@ listpv-ns=$(shell $(kubectl) get  --namespace=nfs-provisioner pv -o template --t
 .delete-pv: .delete-pvc
 	-eval $(kubectl) delete pv/{$(listpv)}
 	-eval $(kubectl) delete --namespace=nfs-provisioner pv/{$(listpv)}
+
+# for file in *.tmpl; do ${GOPATH}/bin/applytmpl < $${file} > $${file%.tmpl}; done
+
+

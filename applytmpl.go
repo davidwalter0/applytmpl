@@ -10,7 +10,7 @@ import (
 	"text/template"
 )
 
-var env = make(map[string]string)
+var EnvironmentKV = make(map[string]string)
 var err error
 var text []byte
 
@@ -26,15 +26,17 @@ func closer() {
 func main() {
 	defer closer()
 
-	environ := os.Environ()
-	for _, e := range environ {
+	environment := os.Environ()
+	for _, e := range environment {
 		parts := strings.SplitN(e, "=", 2)
 		k, v := string(parts[0]), string(parts[1])
-		env[k] = v
-		env[UCamelCase(k)] = v
-		env[LCamelCase(k)] = v
+		EnvironmentKV[k] = v
+		EnvironmentKV[UCamelCase(k)] = v
+		EnvironmentKV[LCamelCase(k)] = v
 	}
-
+	// for k, v := range EnvironmentKV {
+	// 	fmt.Println(k, v)
+	// }
 	text, err = ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		log.Printf("%v.\n", err)
@@ -42,20 +44,21 @@ func main() {
 	}
 	// lookup variables and process them first
 	tmpl = template.New("TemplateApplyEnv")
-	tmpl = tmpl.Funcs(fmap)
+	tmpl = tmpl.Funcs(TemplateFunctions)
 	tmpl, err = tmpl.Parse(string(text))
 	if err != nil {
 		log.Fatalf("Error %v", err)
 	}
-	err = tmpl.Execute(buffer, env)
+	tmpl = tmpl.Funcs(TemplateFunctions)
+	err = tmpl.Execute(buffer, EnvironmentKV)
 	if err != nil {
 		log.Fatalf("Error %v", err)
 	}
-	if len(errors) > 0 {
-		fmt.Fprintln(os.Stderr, strings.Join(errors, "\n"))
+	if len(errorStrings) > 0 {
+		fmt.Fprintln(os.Stderr, strings.Join(errorStrings, "\n"))
 		os.Exit(1)
 	}
-
+	// fmt.Fprintln(os.Stderr, EnvironmentKV)
 	text = buffer.Bytes()
 	fmt.Print(buffer)
 }
