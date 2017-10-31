@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -15,6 +16,45 @@ import (
 	"strings"
 	"text/template"
 )
+
+var TemplateFunctions = template.FuncMap{
+	"add":            Add,
+	"atoi":           Atoi,
+	"base64Decode":   Base64Decode,
+	"base64Encode":   Base64Encode,
+	"cat":            Cat,
+	"curl":           Curl,
+	"delimit":        Delimit, // replace space with ,
+	"div":            Div,
+	"env":            Env,
+	"file":           File,
+	"first":          First,
+	"generate":       Generate,
+	"generateInt":    GenerateInt,
+	"generateN":      GenerateN,
+	"charAGenerator": GeneratorChar,
+	"intAGenerator":  Generator,
+	"join":           Join,
+	"get":            HTTPGet,
+	"in":             In,
+	"index":          Index,
+	"lower":          Lower,
+	"mod":            Mod,
+	"mult":           Mult,
+	"nth":            Nth,
+	"set":            Set,
+	"split":          Split,
+	"sub":            Sub,
+	"tostring":       ByteArrayToString,
+	"trim":           Trim,
+	"upper":          Upper,
+	"upperCase":      UCase,
+	"zip":            Zip,
+	"zipPrefix":      ZipPrefix,
+	"zipSuffix":      ZipSuffix,
+	"zipprefix":      ZipPrefix,
+	"zipsuffix":      ZipSuffix,
+}
 
 var debug bool
 var debugText string
@@ -107,6 +147,11 @@ func Base64Decode(text string) string {
 // Split a string to an array of strings on a space character
 func Split(text string) []string {
 	return strings.Split(Trim(text), " ")
+}
+
+// Join an array of strings to a single string delimited by a space
+func Join(text []string) string {
+	return strings.Join(text, " ")
 }
 
 // First item in an array split on spaces, using Split
@@ -221,17 +266,17 @@ func Cat(in ...string) string {
 	return text
 }
 
-// errors list of problems during template processing
-var errors []string
+// errorStrings list of problems during template processing
+var errorStrings []string
 
 // Env lookup name return value
 func Env(name string) (text string) {
 	text = os.Getenv(name)
 	if len(text) == 0 {
-		if len(errors) == 0 {
-			errors = append(errors, fmt.Sprintf("Template Processing Error"))
+		if len(errorStrings) == 0 {
+			errorStrings = append(errorStrings, fmt.Sprintf("Template Processing Error"))
 		}
-		errors = append(errors, fmt.Sprintf("env var unset: %s", name))
+		errorStrings = append(errorStrings, fmt.Sprintf("env var unset: %s", name))
 	}
 	return
 }
@@ -241,8 +286,8 @@ func File(name string) []byte {
 	return Load(name)
 }
 
-// ToString from byte array
-func ToString(bytes []byte) string {
+// ByteArrayToString from byte array
+func ByteArrayToString(bytes []byte) string {
 	return string(bytes)
 }
 
@@ -277,7 +322,7 @@ func GenerateInt(n int) (ints []int) {
 	return
 }
 
-// Generate an integer array from [0..n] optionally zerofilled for
+// Generate an integer array from [0..n] for
 // consistent name extension use
 func Generate(n int, zerofill bool) (text []string) {
 	var i int
@@ -294,6 +339,23 @@ func Generate(n int, zerofill bool) (text []string) {
 			if i == n-1 {
 				suffix = ""
 			}
+		}
+	}
+	return
+}
+
+// Generate an array of from [0..n] for consistent name extension use
+// func Generate(n string) (text []string) {
+//   return GenerateN(n)
+// }
+// GenerateN an array of from [0..n] for consistent name extension use
+func GenerateN(nS string) (text []string) {
+	n, _ := strconv.Atoi(nS)
+	var i int
+	text = make([]string, 0)
+	if i >= 0 {
+		for i = 0; i < n; i++ {
+			text = append(text, fmt.Sprintf("%d", i))
 		}
 	}
 
@@ -421,6 +483,15 @@ func downCase(text string) string {
 	return downCased
 }
 
+// Set a var in the internal map
+// func Set(k, v string) []string {
+func Set(k, v string) string {
+	k, v = Trim(k), Trim(v)
+	EnvironmentKV[k] = v
+	// return []string{k, v}
+	return ""
+}
+
 // LCamelCase string delimited by "_" AA_bb_Cc return aaBbCc
 func LCamelCase(arg string) (text string) {
 	words := strings.Split(Trim(arg), "_")
@@ -443,36 +514,162 @@ func UCamelCase(arg string) (text string) {
 	return
 }
 
-var fmap = template.FuncMap{
-	"cat":          Cat,
-	"nth":          Nth,
-	"delimit":      Delimit, // replace space with ,
-	"base64Encode": Base64Encode,
-	"base64Decode": Base64Decode,
-	"split":        Split,
-	"zip":          Zip,
-	"zipPrefix":    ZipPrefix,
-	"zipSuffix":    ZipSuffix,
-	"zipprefix":    ZipPrefix,
-	"zipsuffix":    ZipSuffix,
-	"trim":         Trim,
-	"first":        First,
-	"index":        Index,
-	"get":          HTTPGet,
-	"curl":         Curl,
-	"env":          Env,
-	"file":         File,
-	"tostring":     ToString,
-	"generate":     Generate,
-	"generateInt":  GenerateInt,
-	"atoi":         Atoi,
-	"upperCase":    UCase,
-	"upper":        Upper,
-	"lower":        Lower,
-	"in":           In,
-	"add":          Add,
-	"sub":          Sub,
-	"div":          Div,
-	"mult":         Mult,
-	"mod":          Mod,
+func ToString(k interface{}) (s string, e error) {
+	switch k.(type) {
+	case string:
+		s = k.(string)
+	case int32, int64, int:
+		s = strconv.FormatInt(k.(int64), 10)
+	case uint32, uint64, uint:
+		s = strconv.FormatUint(k.(uint64), 10)
+	case bool:
+		s = strconv.FormatBool(k.(bool))
+	case float32:
+		s = strconv.FormatFloat(k.(float64), 'f', -1, 32)
+	case float64:
+		s = strconv.FormatFloat(k.(float64), 'f', -1, 32)
+	case interface{}:
+		s = fmt.Sprintf("%v", k)
+	default:
+		text := fmt.Sprintf("Expected one of [string, {u,}int{,32,64} float{32,64}] but got: %T", k)
+		e = errors.New(text)
+	}
+	return s, e
+}
+
+// davidwalter0/api-driver/dispatch/jpath.go
+func ToInt(k interface{}) (i int) {
+	var s string
+	switch k.(type) {
+	case string:
+		s = k.(string)
+	case uint8:
+		return int(k.(uint8))
+	case int32:
+		return int(k.(int32))
+	case int64:
+		return int(k.(int64))
+	case int:
+		return k.(int)
+	case uint32:
+		return int(k.(uint32))
+	case uint64:
+		return int(k.(uint64))
+	case uint:
+		return int(k.(uint))
+	case bool:
+		if k.(bool) {
+			return 1
+		} else {
+			return 0
+		}
+	case float32:
+		return int(k.(float32))
+	case float64:
+		return int(k.(float64))
+	case interface{}:
+		s = fmt.Sprintf("%v", k)
+	default:
+		text := fmt.Sprintf("Expected one of [string, {u,}int{,32,64} float{32,64}] but got: %T", k)
+		err = errors.New(text)
+	}
+	if err == nil {
+		i, err = atoi(s)
+	}
+
+	if err != nil {
+		fmt.Errorf("%s", err)
+	}
+	return i
+}
+
+func atoi(s string) (int, error) {
+	i, e := strconv.Atoi(s)
+	return int(i), e
+}
+
+type char byte
+
+func (c char) String() string {
+	return string(c)
+}
+
+// Generator create array from, to (inclusive), using step
+// If only one argument then assume from 0, to but excluding (args[0]) step 1
+// that is [0..args[0])
+// otherwise [from..to) if step, increment by step for each element
+// from 1st arg - default 0
+// to   2nd arg - default 0
+// step 3rd arg - default 1
+func Generator(args ...interface{}) (result []int) {
+	if len(args) == 0 {
+		return
+	}
+	var from, to, step, v int = 0, 0, 1, 0
+	for i := 0; i < len(args); i++ {
+		v = ToInt(args[i])
+		switch i {
+		case 0:
+			if len(args) == 1 {
+				to = v
+			} else {
+				from = v
+			}
+		case 1:
+			to = v
+		case 2:
+			step = v
+		}
+	}
+
+	for i := 0; i < to; i += step {
+		result = append(result, from+i)
+	}
+	return
+}
+
+// GeneratorChar create array from, to (inclusive), using step
+// If only one argument then assume from 0, to but excluding (args[0]) step 1
+// that is [0..args[0])
+// otherwise [from..to] if step, increment by step for each element
+// from 1st arg - default 0
+// to   2nd arg - default 0
+// step 3rd arg - default 1
+func GeneratorChar(args ...interface{}) (result []string) {
+	if len(args) == 0 {
+		return
+	}
+	var from, to, step, v int = 0, 0, 1, 0
+	for i := 0; i < len(args); i++ {
+		switch args[i].(type) {
+		case string:
+			a := byte("a"[0])
+			z := byte("z"[0])
+			s := []byte(args[i].(string))
+			if len(s) == 1 && s[0] >= a && s[0] <= z {
+				v = int(s[0] - a)
+			} else {
+				v = ToInt(args[i])
+			}
+		default:
+			v = ToInt(args[i])
+		}
+		switch i {
+		case 0:
+			if len(args) == 1 {
+				to = v
+			} else {
+				from = v
+			}
+		case 1:
+			to = v
+		case 2:
+			step = v
+		}
+	}
+
+	for i := 0; i < to; i += step {
+		result = append(result, string('a'+from+i))
+	}
+	return
 }

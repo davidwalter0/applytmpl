@@ -3,22 +3,22 @@
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  name: {{ env "PROVISIONER_CLIENT_NAME" }}
-  namespace: {{ env "NAMESPACE" }}
+  name: {{ .ProvisionerClientName }}
+  namespace: {{ .Namespace }}
 spec:
-  serviceName: {{ env "PROVISIONER_CLIENT_NAME" }}
+  serviceName: {{ .ProvisionerClientName }}
   replicas: 2
   selector:
     matchLabels:
-      app: {{ env "PROVISIONER_CLIENT_NAME" }}
+      app: {{ .ProvisionerClientName }}
   template:
     metadata:
       labels:
-        app: {{ env "PROVISIONER_CLIENT_NAME" }}
+        app: {{ .ProvisionerClientName }}
     spec:
       containers:
-      - name: {{ env "PROVISIONER_CLIENT_NAME" }}
-        image: {{ env "BUSYBOX_IMAGE" }}
+      - name: {{ .ProvisionerClientName }}
+        image: {{ .BusyboxImage }}
         command:
           - "/bin/sh"
         args:
@@ -39,7 +39,7 @@ spec:
               sleep 10;
             done;
         ports:
-        - name: {{ env "PROVISIONER_CLIENT_NAME" }}
+        - name: {{ .ProvisionerClientName }}
           containerPort: 80
 
         resources:
@@ -74,22 +74,22 @@ spec:
           - name: CPU_REQUEST
             valueFrom:
               resourceFieldRef:
-                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                containerName: {{ .ProvisionerClientName }}
                 resource: requests.cpu
           - name: CPU_LIMIT
             valueFrom:
               resourceFieldRef:
-                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                containerName: {{ .ProvisionerClientName }}
                 resource: limits.cpu
           - name: MEM_REQUEST
             valueFrom:
               resourceFieldRef:
-                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                containerName: {{ .ProvisionerClientName }}
                 resource: requests.memory
           - name: MEM_LIMIT
             valueFrom:
               resourceFieldRef:
-                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                containerName: {{ .ProvisionerClientName }}
                 resource: limits.memory
 
         volumeMounts:
@@ -99,7 +99,7 @@ spec:
   - metadata:
       name: nfs-pvc
       annotations:
-        volume.beta.kubernetes.io/storage-class: {{ env "STORAGE_CLASS_NAME" }}
+        volume.beta.kubernetes.io/storage-class: {{ .StorageClassName }}
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
@@ -111,38 +111,39 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ env "PROVISIONER_CLIENT_NAME" }}
+  name: {{ .ProvisionerClientName }}
   labels:
-    app: {{ env "PROVISIONER_CLIENT_NAME" }}
-  namespace: {{ env "NAMESPACE" }}
+    app: {{ .ProvisionerClientName }}
+  namespace: {{ .Namespace }}
 spec:
   ports:
   - port: 80
-    name: {{ env "PROVISIONER_CLIENT_NAME" }}
+    name: {{ .ProvisionerClientName }}
   # clusterIP: None
   selector:
-    app: {{ env "PROVISIONER_CLIENT_NAME" }}
+    app: {{ .ProvisionerClientName }}
 
 # ------------------------- Default NS Client StatefulSet ------------------------- #
 ---
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  name: {{ env "PROVISIONER_CLIENT_NAME" }}
+  name: {{ .ProvisionerClientName }}
 spec:
-  serviceName: {{ env "PROVISIONER_CLIENT_NAME" }}
+  serviceName: {{ .ProvisionerClientName }}
   replicas: 2
   selector:
     matchLabels:
-      app: {{ env "PROVISIONER_CLIENT_NAME" }}
+      app: {{ .ProvisionerClientName }}
   template:
     metadata:
       labels:
-        app: {{ env "PROVISIONER_CLIENT_NAME" }}
+        app: {{ .ProvisionerClientName }}
     spec:
+      serviceAccount: {{ .NfsProvisionerName }}
       containers:
-      - name: {{ env "PROVISIONER_CLIENT_NAME" }}
-        image: {{ env "BUSYBOX_IMAGE" }}
+      - name: {{ .ProvisionerClientName }}
+        image: {{ .BusyboxImage }}
         command:
           - "/bin/sh"
         args:
@@ -163,7 +164,7 @@ spec:
               sleep 10;
             done;
         ports:
-        - name: {{ env "PROVISIONER_CLIENT_NAME" }}
+        - name: {{ .ProvisionerClientName }}
           containerPort: 80
 
         resources:
@@ -198,22 +199,22 @@ spec:
           - name: CPU_REQUEST
             valueFrom:
               resourceFieldRef:
-                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                containerName: {{ .ProvisionerClientName }}
                 resource: requests.cpu
           - name: CPU_LIMIT
             valueFrom:
               resourceFieldRef:
-                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                containerName: {{ .ProvisionerClientName }}
                 resource: limits.cpu
           - name: MEM_REQUEST
             valueFrom:
               resourceFieldRef:
-                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                containerName: {{ .ProvisionerClientName }}
                 resource: requests.memory
           - name: MEM_LIMIT
             valueFrom:
               resourceFieldRef:
-                containerName: {{ env "PROVISIONER_CLIENT_NAME" }}
+                containerName: {{ .ProvisionerClientName }}
                 resource: limits.memory
 
         volumeMounts:
@@ -223,7 +224,7 @@ spec:
   - metadata:
       name: nfs-pvc
       annotations:
-        volume.beta.kubernetes.io/storage-class: {{ env "STORAGE_CLASS_NAME" }}
+        volume.beta.kubernetes.io/storage-class: {{ .StorageClassName }}
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
@@ -234,16 +235,16 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ env "PROVISIONER_CLIENT_NAME" }}
+  name: {{ .ProvisionerClientName }}
   labels:
-    app: {{ env "PROVISIONER_CLIENT_NAME" }}
+    app: {{ .ProvisionerClientName }}
 spec:
   ports:
   - port: 80
-    name: {{ env "PROVISIONER_CLIENT_NAME" }}
+    name: {{ .ProvisionerClientName }}
   # clusterIP: None
   selector:
-    app: {{ env "PROVISIONER_CLIENT_NAME" }}
+    app: {{ .ProvisionerClientName }}
 
 
 # local variables:
