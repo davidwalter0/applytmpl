@@ -10,7 +10,8 @@ import (
 	"text/template"
 )
 
-var EnvironmentKV = make(map[string]string)
+var EnvironmentKV map[string]string = make(map[string]string, 0)
+
 var err error
 var text []byte
 
@@ -25,15 +26,7 @@ func closer() {
 
 func main() {
 	defer closer()
-
-	environment := os.Environ()
-	for _, e := range environment {
-		parts := strings.SplitN(e, "=", 2)
-		k, v := string(parts[0]), string(parts[1])
-		EnvironmentKV[k] = v
-		EnvironmentKV[UCamelCase(k)] = v
-		EnvironmentKV[LCamelCase(k)] = v
-	}
+	LoadEnvKV()
 	// for k, v := range EnvironmentKV {
 	// 	fmt.Println(k, v)
 	// }

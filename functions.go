@@ -18,42 +18,47 @@ import (
 )
 
 var TemplateFunctions = template.FuncMap{
-	"add":            Add,
-	"atoi":           Atoi,
-	"base64Decode":   Base64Decode,
-	"base64Encode":   Base64Encode,
-	"cat":            Cat,
-	"curl":           Curl,
-	"delimit":        Delimit, // replace space with ,
-	"div":            Div,
-	"env":            Env,
-	"file":           File,
-	"first":          First,
-	"generate":       Generate,
-	"generateInt":    GenerateInt,
-	"generateN":      GenerateN,
-	"charAGenerator": GeneratorChar,
-	"intAGenerator":  Generator,
-	"join":           Join,
-	"get":            HTTPGet,
-	"in":             In,
-	"index":          Index,
-	"lower":          Lower,
-	"mod":            Mod,
-	"mult":           Mult,
-	"nth":            Nth,
-	"set":            Set,
-	"split":          Split,
-	"sub":            Sub,
-	"tostring":       ByteArrayToString,
-	"trim":           Trim,
-	"upper":          Upper,
-	"upperCase":      UCase,
-	"zip":            Zip,
-	"zipPrefix":      ZipPrefix,
-	"zipSuffix":      ZipSuffix,
-	"zipprefix":      ZipPrefix,
-	"zipsuffix":      ZipSuffix,
+	"add":               Add,
+	"atoi":              Atoi,
+	"base64Decode":      Base64Decode,
+	"base64Encode":      Base64Encode,
+	"byteArrayToString": ByteArrayToString,
+	"cat":               Cat,
+	"charAGenerator":    GeneratorChar,
+	"curl":              Curl,
+	"delimit":           Delimit, // replace space with ,
+	"div":               Div,
+	"env":               Env,
+	"file":              File,
+	"file2ByteArray":    File,
+	"file2string":       File2String,
+	"first":             First,
+	"generate":          Generate,
+	"generateInt":       GenerateInt,
+	"generateN":         GenerateN,
+	"get":               HTTPGet,
+	"in":                In,
+	"index":             Index,
+	"intAGenerator":     Generator,
+	"join":              Join,
+	"lower":             Lower,
+	"mod":               Mod,
+	"mult":              Mult,
+	"nth":               Nth,
+	"privPem2Pub":       PublicKey,
+	"publicKey":         PublicKey,
+	"set":               Set,
+	"split":             Split,
+	"sub":               Sub,
+	"tostring":          ByteArrayToString,
+	"trim":              Trim,
+	"upper":             Upper,
+	"upperCase":         UCase,
+	"zip":               Zip,
+	"zipPrefix":         ZipPrefix,
+	"zipSuffix":         ZipSuffix,
+	"zipprefix":         ZipPrefix,
+	"zipsuffix":         ZipSuffix,
 }
 
 var debug bool
@@ -286,6 +291,11 @@ func File(name string) []byte {
 	return Load(name)
 }
 
+// File name loaded to byte array
+func File2String(name string) string {
+	return string(Load(name))
+}
+
 // ByteArrayToString from byte array
 func ByteArrayToString(bytes []byte) string {
 	return string(bytes)
@@ -374,12 +384,9 @@ func Curl(name string) string {
 }
 
 // Atoi convert a string to a base 10 integer
-func Atoi(s string) int {
-	n, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		log.Printf("problem %v\n", err)
-	}
-	return int(n)
+func Atoi(s interface{}) int {
+	return ToInt(s)
+	// return s
 }
 
 // UCase the first character of string
@@ -432,36 +439,40 @@ var envMap = template.FuncMap{
 // 	return
 // }
 
-func Add(l, r int) string {
-	//	l, r := SplitDigits(lhs, rhs)
-	return fmt.Sprintf("%d", l+r)
-}
-func Sub(l, r int) string {
-	//	l, r := SplitDigits(lhs, rhs)
-	return fmt.Sprintf("%d", l-r)
-}
-func Div(l, r int) string {
-	//	l, r := SplitDigits(lhs, rhs)
-	return fmt.Sprintf("%d", l/r)
-}
-func Mult(l, r int) string {
-	//	l, r := SplitDigits(lhs, rhs)
-	return fmt.Sprintf("%d", l*r)
-}
-func Mod(l, r int) string {
-	//	l, r := SplitDigits(lhs, rhs)
-	return fmt.Sprintf("%d", l%r)
+func Add(l, r interface{}) string {
+	return fmt.Sprintf("%d", ToInt(l)+ToInt(r))
 }
 
-var Environment map[string]string = make(map[string]string, 0)
+func Sub(l, r interface{}) string {
+	return fmt.Sprintf("%d", ToInt(l)-ToInt(r))
+}
+func Div(l, r interface{}) string {
+	//	l, r := SplitDigits(lhs, rhs)
+	return fmt.Sprintf("%d", ToInt(l)/ToInt(r))
+}
+func Mult(l, r interface{}) string {
+	//	l, r := SplitDigits(lhs, rhs)
+	return fmt.Sprintf("%d", ToInt(l)*ToInt(r))
+}
+func Mod(l, r interface{}) string {
+	//	l, r := SplitDigits(lhs, rhs)
+	return fmt.Sprintf("%d", ToInt(l)%ToInt(r))
+}
 
-func loadEnv() {
-	env_array := os.Environ()
-	for _, env := range env_array {
-		parts := strings.SplitN(env, "=", 2)
+// Camelize insert into EnvironmentKV map the default key, and camel
+// cased keys
+func Camelize(k, v string) {
+	EnvironmentKV[k] = v
+	EnvironmentKV[UpperLeadingCamelCase(k)] = v
+	EnvironmentKV[LowerLeadingCamelCase(k)] = v
+}
+
+func LoadEnvKV() {
+	environment := os.Environ()
+	for _, e := range environment {
+		parts := strings.SplitN(e, "=", 2)
 		k, v := string(parts[0]), string(parts[1])
-		Environment[k] = v
-
+		Camelize(k, v)
 	}
 }
 
@@ -485,15 +496,13 @@ func downCase(text string) string {
 
 // Set a var in the internal map
 // func Set(k, v string) []string {
-func Set(k, v string) string {
-	k, v = Trim(k), Trim(v)
-	EnvironmentKV[k] = v
-	// return []string{k, v}
+func Set(k, v interface{}) string {
+	Camelize(Trim(ToString(k)), Trim(ToString(v)))
 	return ""
 }
 
-// LCamelCase string delimited by "_" AA_bb_Cc return aaBbCc
-func LCamelCase(arg string) (text string) {
+// LowerLeadingCamelCase string delimited by "_" AA_bb_Cc return aaBbCc
+func LowerLeadingCamelCase(arg string) (text string) {
 	words := strings.Split(Trim(arg), "_")
 	for i, word := range words {
 		if i == 0 {
@@ -505,8 +514,8 @@ func LCamelCase(arg string) (text string) {
 	return
 }
 
-// UCamelCase string delimited by "_" AA_bb_Cc return AaBbCc
-func UCamelCase(arg string) (text string) {
+// UpperLeadingCamelCase string delimited by "_" AA_bb_Cc return AaBbCc
+func UpperLeadingCamelCase(arg string) (text string) {
 	words := strings.Split(Trim(arg), "_")
 	for _, word := range words {
 		text += upperCase(word)
@@ -514,7 +523,38 @@ func UCamelCase(arg string) (text string) {
 	return
 }
 
-func ToString(k interface{}) (s string, e error) {
+func ToString(k interface{}) (s string) {
+	switch k.(type) {
+	case string:
+		s = k.(string)
+	case int32:
+		s = strconv.FormatInt(int64(k.(int32)), 10)
+	case int64:
+		s = strconv.FormatInt(k.(int64), 10)
+	case int:
+		s = strconv.FormatInt(int64(k.(int)), 10)
+	case uint32:
+		s = strconv.FormatUint(uint64(k.(uint32)), 10)
+	case uint64:
+		s = strconv.FormatUint(k.(uint64), 10)
+	case uint:
+		s = strconv.FormatUint(uint64(k.(uint)), 10)
+	case bool:
+		s = strconv.FormatBool(k.(bool))
+	case float32:
+		s = strconv.FormatFloat(k.(float64), 'f', -1, 32)
+	case float64:
+		s = strconv.FormatFloat(k.(float64), 'f', -1, 32)
+	case interface{}:
+		s = fmt.Sprintf("%v", k)
+	default:
+		text := fmt.Sprintf("Expected one of [string, {u,}int{,32,64} float{32,64}] but got: (%v) %T\n", k, k)
+		fmt.Fprintln(os.Stderr, text)
+	}
+	return s
+}
+
+func ToStringError(k interface{}) (s string, e error) {
 	switch k.(type) {
 	case string:
 		s = k.(string)
@@ -626,6 +666,18 @@ func Generator(args ...interface{}) (result []int) {
 		result = append(result, from+i)
 	}
 	return
+}
+
+// PublicKey from a private ssh key
+func PublicKey(privateKeyPEM string) string {
+	privateKeyParsedString, _ := ParseRsaPrivateKeyFromPemStr(privateKeyPEM)
+	// Export the newly imported keys
+	sshPublicKeyFormat, _ := ExportRsaPublicKeyAsSSHStr(privateKeyParsedString)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v.\n", err)
+		return ""
+	}
+	return sshPublicKeyFormat
 }
 
 // GeneratorChar create array from, to (inclusive), using step
