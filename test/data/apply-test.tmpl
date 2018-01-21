@@ -76,12 +76,6 @@ metadata:
 - name: curl
   value: '{{ curl "http://example.com:8882/raw" }}'
 
-- name: curl_value
-  value: '{{ .curlraw }}'
-
-- name: curl_valueb64
-  value: '{{ .curl }}'
-
 - name: curl_encode
   value: '{{ curl "http://example.com:8882/raw" | base64Encode }}'
 

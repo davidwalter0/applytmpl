@@ -18,27 +18,14 @@ validate:
 		eval echo -e $${VALIDATION_TEXT}; exit 1; \
 	fi
 
-certificates: key cert
-
-key: test-server/server.key 
-# https://www.shellhacks.com/create-csr-openssl-without-prompt-non-interactive/
-test-server/server.key: data/environment
-# https://www.shellhacks.com/create-csr-openssl-without-prompt-non-interactive/
+certificates: data/environment Makefile
+	mkdir -p certs;
 	. data/environment; \
-	openssl genrsa -out test-server/server.key 2048 -subj "$${SUBJECT}"
-
-	openssl ecparam -genkey -name secp384r1 \
-		-out test-server/server.key
-
-cert: test-server/server.pem
-
-test-server/server.pem: data/environment
-	. data/environment; \
-	openssl req -new -x509 -sha256 -key test-server/server.key \
-		-out test-server/server.pem -days 3650 -subj "$${SUBJECT}"
+	go get ; \
+	go run generate-certificates.go
 
 build:
-	make -C ../
+	make -C ../ bin/applytmpl
 
 test: build
 	./run &
@@ -47,6 +34,8 @@ test: build
 		sleep 5; \
 	done
 	. data/environment; \
-	cat data/apply-test.tmpl | applytmpl; EXIT=$$? ; \
+	cat data/apply-test.tmpl | ../bin/applytmpl; EXIT=$$? ; \
 	kill -9 $$(pgrep simple-server); exit $${EXIT}
+
+	echo '{{ file2string "certs/server.key" | publicKey }}'| ../bin/applytmpl
 

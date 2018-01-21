@@ -19,10 +19,10 @@ ok
 	var compareResult []Result = []Result{
 		Result{want: []string{}, got: GeneratorChar()},
 		Result{want: []string{"a", "b", "c", "d", "e"}, got: GeneratorChar(5)},
-		Result{want: []string{"b", "c", "d", "e", "f", "g", "h", "i", "j"}, got: GeneratorChar(1, 8)},
+		Result{want: []string{"b", "c", "d", "e", "f", "g", "h", "i", "j"}, got: GeneratorChar(1, 9)},
 		Result{want: []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o"}, got: GeneratorChar(15)},
-		Result{want: []string{"b", "e", "h", "k"}, got: GeneratorChar(1, "9", 3)},
-		Result{want: []string{"a", "f", "k", "p", "u", "z"}, got: GeneratorChar(0, 25, 5)},
+		Result{want: []string{"b", "e", "h", "k"}, got: GeneratorChar(1, "10", 3)},
+		Result{want: []string{"a", "f", "k", "p", "u", "z"}, got: GeneratorChar(0, 26, 5)},
 		Result{want: []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}, got: GeneratorChar("a", "z")},
 	}
 
@@ -51,6 +51,7 @@ ok
 	fmt.Println(Generator(15))
 	fmt.Println(Generator(1, "9", 3))
 	fmt.Println(Generator(0, 25, 5))
+	fmt.Println(GeneratorChar("a", "f", 2))
 }
 
 func Test_Ascii(t *testing.T) {
