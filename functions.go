@@ -47,6 +47,7 @@ var TemplateFunctions = template.FuncMap{
 	"nth":               Nth,
 	"privPem2Pub":       PublicKey,
 	"publicKey":         PublicKey,
+	"replace":           Replace,
 	"set":               Set,
 	"split":             Split,
 	"sub":               Sub,
@@ -688,18 +689,22 @@ func PublicKey(privateKeyPEM string) string {
 // to   2nd arg - default 0
 // step 3rd arg - default 1
 func GeneratorChar(args ...interface{}) (result []string) {
+	const (
+		a = 'a'
+		z = 'z'
+	)
 	if len(args) == 0 {
 		return
 	}
+	var charType []bool = []bool{false, false, false}
 	var from, to, step, v int = 0, 0, 1, 0
 	for i := 0; i < len(args); i++ {
 		switch args[i].(type) {
 		case string:
-			a := byte("a"[0])
-			z := byte("z"[0])
 			s := []byte(args[i].(string))
 			if len(s) == 1 && s[0] >= a && s[0] <= z {
 				v = int(s[0] - a)
+				charType[i] = true
 			} else {
 				v = ToInt(args[i])
 			}
@@ -720,8 +725,19 @@ func GeneratorChar(args ...interface{}) (result []string) {
 		}
 	}
 
-	for i := 0; i < to; i += step {
-		result = append(result, string('a'+from+i))
+	if charType[1] {
+		for i := 0; i <= to; i += step {
+			result = append(result, string('a'+from+i))
+		}
+	} else {
+		for i := 0; i < to; i += step {
+			result = append(result, string('a'+from+i))
+		}
 	}
 	return
+}
+
+// Replace a character in a string in a template
+func Replace(text string, Old, New string) string {
+	return strings.Replace(text, Old, New, -1)
 }

@@ -52,6 +52,35 @@ func main() {
 		os.Exit(1)
 	}
 	// fmt.Fprintln(os.Stderr, EnvironmentKV)
-	text = buffer.Bytes()
-	fmt.Print(buffer)
+	text := string(buffer.Bytes())
+	find := "<no value"
+	// case 0: not found == -1, skip block
+	// case 1: found >=0, enter block
+	if pos := strings.Index(text, find); pos != -1 {
+		var start, hold, line int
+		for start = strings.Index(text, "\n"); start >= 0 && start < pos && start != -1; line++ {
+			hold = start
+			var t int
+			if t = strings.Index(text[start:], "\n"); t == -1 {
+				break
+			}
+			start = start + 1 + t
+		}
+		start = hold
+		end := strings.Index(text[start:], "\n")
+
+		if end == -1 {
+			end = pos + len(find)
+		} else {
+			end = start + pos + len(find)
+		}
+		if end > len(text) {
+			end = len(text) - 1
+		}
+		errorText := strings.Replace(text[start:end], "\n", "", -1)
+		fmt.Fprintf(os.Stderr, "Error: template parse failure: [<no value>]\nError: Failure context:%d:%d:\n%s\n", line, end, errorText)
+		fmt.Print(text)
+		os.Exit(1)
+	}
+	fmt.Print(text)
 }

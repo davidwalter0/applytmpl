@@ -8,6 +8,7 @@ export BUSYBOX_IMAGE=gcr.io/google_containers/busybox:1.24
 export NFS_PROVISIONER_IMAGE=quay.io/kubernetes_incubator/nfs-provisioner:v1.0.8
 export NFS_PROVISIONER_NAME=nfs-s01
 export NAMESPACE=nfs-provisioner
+# To enable kubernetes commands a valid configuration is required
 export kubectl=${GOPATH}/bin/kubectl  --kubeconfig=${PWD}/cluster/auth/kubeconfig
 
 .PHONY: yaml
@@ -67,5 +68,3 @@ listpv-ns=$(shell $(kubectl) get  --namespace=nfs-provisioner pv -o template --t
 	-eval $(kubectl) delete --namespace=nfs-provisioner pv/{$(listpv)}
 
 # for file in *.tmpl; do ${GOPATH}/bin/applytmpl < $${file} > $${file%.tmpl}; done
-
-
