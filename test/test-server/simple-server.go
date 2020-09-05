@@ -49,7 +49,7 @@ func Now() string {
 var prefix = ""
 
 func init() {
-	if err = cfg.ProcessHoldFlags("APP", &app); err != nil {
+	if err = cfg.Wrap("APP", &app); err != nil {
 		log.Fatalf("%v\n", err)
 	}
 	cfg.Freeze()

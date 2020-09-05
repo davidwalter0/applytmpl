@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"text/template"
 )
@@ -24,7 +26,55 @@ func closer() {
 	}
 }
 
+var help = flag.Bool("help", false, "print usage information")
+
+func init() {
+	flag.Parse()
+	if *help {
+		Usage()
+	}
+}
+
+func Usage() {
+	fmt.Printf(`
+Usage: %s [--help]
+
+Setting the environment variable HELP=(true,1,t,T) will print this
+help
+
+Override delimiters for mixed template processing arguments by setting
+the environment variable "OVERRIDE_TEMPLATE_DELIMS" to a comma
+delimited pair of sequences OVERRIDE_TEMPLATE_DELIMS=">>,<<" or "{%,%}"
+
+Method names exposed for templates
+----------------------------------
+`, os.Args[0])
+	names := SortableStrings{}
+	for name := range TemplateFunctions {
+		names = append(names, name)
+	}
+
+	for _, name := range names.Sort() {
+		fmt.Println(name)
+	}
+	os.Exit(0)
+}
+
 func main() {
+	if help, ok := os.LookupEnv("HELP"); ok {
+		if v, err := strconv.ParseBool(help); err == nil && v {
+			Usage()
+		}
+	}
+	ldelim, rdelim := "{{", "}}"
+	if delims, ok := os.LookupEnv("OVERRIDE_TEMPLATE_DELIMS"); ok {
+		pair := strings.Split(delims, ",")
+		if len(pair) > 1 {
+			ldelim = strings.TrimSpace(pair[0])
+			rdelim = strings.TrimSpace(pair[1])
+		}
+	}
+
 	defer closer()
 	LoadEnvKV()
 	// for k, v := range EnvironmentKV {
@@ -36,7 +86,7 @@ func main() {
 		os.Exit(3)
 	}
 	// lookup variables and process them first
-	tmpl = template.New("TemplateApplyEnv")
+	tmpl = template.New("TemplateApplyEnv").Delims(ldelim, rdelim)
 	tmpl = tmpl.Funcs(TemplateFunctions)
 	tmpl, err = tmpl.Parse(string(text))
 	if err != nil {

@@ -32,7 +32,7 @@ var app *App = &App{}
 var err error
 
 func main() {
-	if err = cfg.Parse(app); err != nil {
+	if err = cfg.Eval(app); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
@@ -51,7 +51,7 @@ func main() {
 	// see Certificate structure at
 	// http://golang.org/pkg/crypto/x509/#Certificate
 	template := &x509.Certificate{
-		IsCA: true,
+		IsCA:                  true,
 		BasicConstraintsValid: true,
 		SubjectKeyId:          []byte{1, 2, 3},
 		SerialNumber:          big.NewInt(1),

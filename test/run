@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/bash -x
 TEST_SERVER_DIR=${0%/*}/test-server
 TEST_DATA_DIR=${0%/*}/data
 
 . ${TEST_DATA_DIR}/environment
 
-# export APP_PATH=${TEST_DATA_DIR}
+export APP_PATH=$(readlink -f ${TEST_DATA_DIR})
 go run ${TEST_SERVER_DIR}/simple-server.go

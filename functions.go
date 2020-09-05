@@ -17,27 +17,38 @@ import (
 	"text/template"
 )
 
+// TemplateFunctions the functions visible / available for template
+// processing.
 var TemplateFunctions = template.FuncMap{
 	"add":               Add,
 	"atoi":              Atoi,
 	"base64Decode":      Base64Decode,
 	"base64Encode":      Base64Encode,
+	"base64decode":      Base64Decode,
+	"base64encode":      Base64Encode,
 	"byteArrayToString": ByteArrayToString,
 	"cat":               Cat,
 	"charAGenerator":    GeneratorChar,
 	"curl":              Curl,
+	"dec":               Decrement,
+	"decode":            Base64Decode,
+	"default":           DefaultValue,
 	"delimit":           Delimit, // replace space with ,
 	"div":               Div,
+	"encode":            Base64Encode,
 	"env":               Env,
 	"file":              File,
 	"file2ByteArray":    File,
 	"file2string":       File2String,
+	"filebyline":        FileByLine,
 	"first":             First,
 	"generate":          Generate,
 	"generateInt":       GenerateInt,
 	"generateN":         GenerateN,
 	"get":               HTTPGet,
+	"host_architecture": HostArchitecture,
 	"in":                In,
+	"inc":               Increment,
 	"index":             Index,
 	"intAGenerator":     Generator,
 	"join":              Join,
@@ -60,11 +71,16 @@ var TemplateFunctions = template.FuncMap{
 	"zipSuffix":         ZipSuffix,
 	"zipprefix":         ZipPrefix,
 	"zipsuffix":         ZipSuffix,
+	"zerofill":          ZeroFill,
+	"slice":             Slice,
 }
 
 var debug bool
 var debugText string
 
+func Slice(v ...interface{}) []interface{} {
+	return v
+}
 func trace() {
 	pc := make([]uintptr, 10)
 	runtime.Callers(10, pc)
@@ -76,6 +92,19 @@ func trace() {
 		file, line := f.FileLine(pc[i])
 		fmt.Printf("error: %s:%d: %s\n", file, line, f.Name())
 	}
+}
+
+func HostArchitecture() string {
+	return runtime.GOARCH
+}
+
+func DefaultValue(args ...string) string {
+	r := ""
+	for _, arg := range args {
+		fmt.Printf("DefaultValue: %d %s\n", runtime.GOARCH)
+		r = arg
+	}
+	return r
 }
 
 func isHttps(url string) bool {
@@ -292,6 +321,19 @@ func File(name string) []byte {
 	return Load(name)
 }
 
+// FileByLine name loaded to byte array first trimming leading and trailing
+// spaces then splitting on newline
+func FileByLine(name string) []string {
+	if len(name) == 0 {
+		panic(fmt.Sprintf("can't Load() a file with an empty name"))
+	}
+	content, err := ioutil.ReadFile(name)
+	if err != nil {
+		panic(fmt.Sprintf("ioutil.ReadFile FileByLine() failed %v", err))
+	}
+	return strings.Split(strings.TrimSpace(string(content)), "\n")
+}
+
 // File name loaded to byte array
 func File2String(name string) string {
 	return string(Load(name))
@@ -331,6 +373,12 @@ func GenerateInt(n int) (ints []int) {
 	}
 
 	return
+}
+
+// ZeroFill an int to width digits
+func ZeroFill(ns string, width int) string {
+	n, _ := strconv.Atoi(ns)
+	return fmt.Sprintf("%0.*d", width, n)
 }
 
 // Generate an integer array from [0..n] for
@@ -439,6 +487,13 @@ var envMap = template.FuncMap{
 // 	r, _ = strconv.Atoi(rhs)
 // 	return
 // }
+
+func Increment(l interface{}) string {
+	return fmt.Sprintf("%d", ToInt(l)+1)
+}
+func Decrement(l interface{}) string {
+	return fmt.Sprintf("%d", ToInt(l)-1)
+}
 
 func Add(l, r interface{}) string {
 	return fmt.Sprintf("%d", ToInt(l)+ToInt(r))
