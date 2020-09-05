@@ -1,7 +1,7 @@
 // +build appengine
 
-package cfg
+package cfg // import "github.com/davidwalter0/go-cfg"
 
 import "os"
 
-var lookupEnv = os.LookupEnv
+var LookupEnv = os.LookupEnv

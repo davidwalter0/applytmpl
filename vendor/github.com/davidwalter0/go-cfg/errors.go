@@ -2,9 +2,10 @@ package cfg
 
 import (
 	"errors"
+	"fmt"
 )
 
-var ErrInvalidSpecification = errors.New("Specification must be a struct pointer")
-var ErrInvalidArgPointerRequired = errors.New("Argument must be a pointer")
-var ErrInvalidArgMapParseSpec = errors.New("Map argument requires pairs")
-var ErrIgnoreTag = errors.New("This Tag isn't in use")
+var ErrInvalidSpecification = errors.New("specification must be a struct pointer")
+var ErrInvalidArgPointerRequired = fmt.Errorf("%s: requires one or more struct pointer arguments", Package)
+var ErrInvalidArgMapParseSpec = errors.New("map argument requires pairs")
+var ErrIgnoreTag = errors.New("this Tag isn't in use")

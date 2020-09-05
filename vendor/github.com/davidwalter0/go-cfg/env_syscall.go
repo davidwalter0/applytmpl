@@ -1,7 +1,7 @@
 // +build !appengine
 
-package cfg
+package cfg // import "github.com/davidwalter0/go-cfg"
 
 import "syscall"
 
-var lookupEnv = syscall.Getenv
+var LookupEnv = syscall.Getenv

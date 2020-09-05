@@ -1,4 +1,5 @@
 .PHONY: deps install clean
+export GO111MODULE=on
 export GOPATH=/go
 
 # target:=$(GOPATH)/bin/$(notdir $(PWD))
@@ -41,10 +42,6 @@ install: build
 clean:
 	@if [[ -x "$(target)" ]]; then rm -f $(target); fi
 	@if [[ -d "bin" ]]; then rmdir bin; fi
-
-govendor:
-	govendor init
-	govendor add +external
-
-govendor-sync:
-	govendor sync
+.PHONY: test
+test:
+	make -C test
