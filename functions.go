@@ -1,4 +1,4 @@
-package main
+package applytmpl
 
 import (
 	"crypto/tls"
@@ -101,8 +101,8 @@ func HostArchitecture() string {
 
 func DefaultValue(args ...string) string {
 	r := ""
-	for _, arg := range args {
-		fmt.Printf("DefaultValue: %d %s\n", runtime.GOARCH)
+	for i, arg := range args {
+		fmt.Printf("DefaultValue: %d %s\n", i, runtime.GOARCH)
 		r = arg
 	}
 	return r
@@ -302,17 +302,17 @@ func Cat(in ...string) string {
 	return text
 }
 
-// errorStrings list of problems during template processing
-var errorStrings []string
+// Errors list of problems during template processing
+var Errors []string
 
 // Env lookup name return value
 func Env(name string) (text string) {
 	text = os.Getenv(name)
 	if len(text) == 0 {
-		if len(errorStrings) == 0 {
-			errorStrings = append(errorStrings, fmt.Sprintf("Template Processing Error"))
+		if len(Errors) == 0 {
+			Errors = append(Errors, fmt.Sprintf("Template Processing Error"))
 		}
-		errorStrings = append(errorStrings, fmt.Sprintf("env var unset: %s", name))
+		Errors = append(Errors, fmt.Sprintf("env var unset: %s", name))
 	}
 	return
 }
@@ -516,6 +516,9 @@ func Mod(l, r interface{}) string {
 	return fmt.Sprintf("%d", ToInt(l)%ToInt(r))
 }
 
+// EnvironmentKV map var names to values for template processing
+var EnvironmentKV map[string]string = make(map[string]string, 0)
+
 // Camelize insert into EnvironmentKV map the default key, and camel
 // cased keys
 func Camelize(k, v string) {
@@ -636,6 +639,7 @@ func ToStringError(k interface{}) (s string, e error) {
 
 // davidwalter0/api-driver/dispatch/jpath.go
 func ToInt(k interface{}) (i int) {
+	var err error
 	var s string
 	switch k.(type) {
 	case string:
@@ -727,6 +731,7 @@ func Generator(args ...interface{}) (result []int) {
 
 // PublicKey from a private ssh key
 func PublicKey(privateKeyPEM string) string {
+	var err error
 	privateKeyParsedString, _ := ParseRsaPrivateKeyFromPemStr(privateKeyPEM)
 	// Export the newly imported keys
 	sshPublicKeyFormat, _ := ExportRsaPublicKeyAsSSHStr(privateKeyParsedString)

@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
-)
 
-var EnvironmentKV map[string]string = make(map[string]string, 0)
+	"github.com/davidwalter0/applytmpl"
+)
 
 var err error
 var text []byte
@@ -60,8 +60,8 @@ Method names exposed for templates
 ----------------------------------
 `, os.Args[0], path.Base(os.Args[0]))
 
-	names := SortableStrings{}
-	for name := range TemplateFunctions {
+	names := applytmpl.SortableStrings{}
+	for name := range applytmpl.TemplateFunctions {
 		names = append(names, name)
 	}
 
@@ -87,7 +87,7 @@ func main() {
 	}
 
 	defer closer()
-	LoadEnvKV()
+	applytmpl.LoadEnvKV()
 	// for k, v := range EnvironmentKV {
 	// 	fmt.Println(k, v)
 	// }
@@ -98,18 +98,18 @@ func main() {
 	}
 	// lookup variables and process them first
 	tmpl = template.New("TemplateApplyEnv").Delims(ldelim, rdelim)
-	tmpl = tmpl.Funcs(TemplateFunctions)
+	tmpl = tmpl.Funcs(applytmpl.TemplateFunctions)
 	tmpl, err = tmpl.Parse(string(text))
 	if err != nil {
 		log.Fatalf("Error %v", err)
 	}
-	tmpl = tmpl.Funcs(TemplateFunctions)
-	err = tmpl.Execute(buffer, EnvironmentKV)
+	tmpl = tmpl.Funcs(applytmpl.TemplateFunctions)
+	err = tmpl.Execute(buffer, applytmpl.EnvironmentKV)
 	if err != nil {
 		log.Fatalf("Error %v", err)
 	}
-	if len(errorStrings) > 0 {
-		fmt.Fprintln(os.Stderr, strings.Join(errorStrings, "\n"))
+	if len(applytmpl.Errors) > 0 {
+		fmt.Fprintln(os.Stderr, strings.Join(applytmpl.Errors, "\n"))
 		os.Exit(1)
 	}
 	// fmt.Fprintln(os.Stderr, EnvironmentKV)

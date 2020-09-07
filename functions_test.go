@@ -1,4 +1,4 @@
-package main
+package applytmpl
 
 import (
 	"fmt"
@@ -12,9 +12,7 @@ type Result struct {
 }
 
 func Test_GenerateChar(t *testing.T) {
-	fmt.Println(`
-ok
-`)
+	fmt.Printf("ok\n")
 
 	var compareResult []Result = []Result{
 		Result{want: []string{}, got: GeneratorChar()},
@@ -41,9 +39,7 @@ ok
 }
 
 func Test_Generate(t *testing.T) {
-	fmt.Println(`
-ok
-`)
+	fmt.Printf("ok\n")
 	fmt.Println(Generator())
 	fmt.Println(Generator(uint32(5)))
 	fmt.Println(Generator(5))

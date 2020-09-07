@@ -1,4 +1,4 @@
-package main
+package applytmpl
 
 import (
 	"crypto/rand"
