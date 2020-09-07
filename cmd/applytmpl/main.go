@@ -30,15 +30,23 @@ func closer() {
 
 var help = flag.Bool("help", false, "print usage information")
 
-func init() {
+func version() {
+	me := path.Base(os.Args[0])
+	for _, arg := range os.Args {
+		if arg == "version" {
+			fmt.Fprintf(os.Stderr, "Command: %s\nVersion: %s\nBuild:   %s\nCommit:  %s\n", me, Version, Build, Commit)
+			os.Exit(0)
+		}
+	}
 	flag.Parse()
 	if *help {
 		Usage()
 	}
 }
-
 func Usage() {
 	fmt.Printf(`
+%s
+
 Usage: %s [--help]
  
 Setting the environment variable HELP=(true,1,t,T) will print this
@@ -59,7 +67,7 @@ OVERRIDE_TEMPLATE_DELIMS="{%%,%%}"
 
 Method names exposed for templates
 ----------------------------------
-`, os.Args[0], path.Base(os.Args[0]))
+`, fmt.Sprintf("Command: %s\nVersion: %s\nBuild:   %s\nCommit:  %s\n", path.Base(os.Args[0]), Version, Build, Commit), os.Args[0], path.Base(os.Args[0]))
 
 	names := applytmpl.SortableStrings{}
 	for name := range applytmpl.TemplateFunctions {
@@ -71,13 +79,13 @@ Method names exposed for templates
 	for _, name := range names.Sort() {
 		infoArray := strings.Split(doc.Info(applytmpl.TemplateFunctions[name]), "\n")
 		info := strings.Join(infoArray, "\n                                ")
-		// fmt.Printf("%-32s %s\n", "template function name", "function description")
 		fmt.Printf("%-32s%s\n", name, info)
 	}
 	os.Exit(0)
 }
 
 func main() {
+	version()
 	if help, ok := os.LookupEnv("HELP"); ok {
 		if v, err := strconv.ParseBool(help); err == nil && v {
 			Usage()
