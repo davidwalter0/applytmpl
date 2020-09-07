@@ -56,6 +56,7 @@ var TemplateFunctions = template.FuncMap{
 	"mod":               Mod,
 	"mult":              Mult,
 	"nth":               Nth,
+	"printf":            Printf,
 	"privPem2Pub":       PublicKey,
 	"publicKey":         PublicKey,
 	"replace":           Replace,
@@ -795,4 +796,9 @@ func GeneratorChar(args ...interface{}) (result []string) {
 // Replace a character in a string in a template
 func Replace(text string, Old, New string) string {
 	return strings.Replace(text, Old, New, -1)
+}
+
+// Printf formatted ouput processing
+func Printf(format string, varargs ...interface{}) string {
+	return fmt.Sprintf(format, varargs...)
 }
