@@ -1,8 +1,10 @@
 #!/bin/bash -x
-TEST_SERVER_DIR=${0%/*}/test-server
-TEST_DATA_DIR=${0%/*}/data
+TEST_SERVER_DIR=$(readlink -f ${0%/*}/test-server)
+TEST_DATA_DIR=$(readlink -f ${0%/*}/data)
 
 . ${TEST_DATA_DIR}/environment
 
 export APP_PATH=$(readlink -f ${TEST_DATA_DIR})
-go run ${TEST_SERVER_DIR}/simple-server.go
+args="-s -w -X main.Build=$(date -u +%Y.%m.%d.%H.%M.%S.%:::z) -X main.Commit=$(git log --format=%hash-%aI -n1)";	\
+go build -ldflags "${args}" -o simple-server ${TEST_SERVER_DIR}/simple-server.go
+./simple-server

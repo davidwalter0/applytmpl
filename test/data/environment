@@ -1,9 +1,12 @@
 #!/bin/bash
 export WRAP_BUFFER_TRACE_ENABLE=true
 export CERT_DIR=certs
-export APP_HOST=example.com;
-export APP_PORT=8883 ;
+export APP_HOST=osx
+export APP_COUNTRY=US
+export APP_PORT=8883 
+export APP_DNSNAMES=osx
 export APP_ORGANIZATION=${APP_HOST} ;
+export APP_ORG=${APP_ORGANIZATION}
 export APP_CERT=${CERT_DIR}/server.pem ;
 export APP_KEY=${CERT_DIR}/server.key ; 
 export APP_PATH=data;
@@ -14,9 +17,9 @@ export GOPATH=/go
 export NAMESPACE=testing-ns
 export SOME_FILE=data/something
 export ID_ED25519=data/id_ed25519.pub
-export ID_ED25519_URL=http://${APP_HOST}:8882/id_ed25519.pub
-export ID_ED25519_URLS=https://${APP_HOST}:8883/id_ed25519.pub
-export SUBJECT="/C=US/ST=New-York/L=NYC/O=${APP_HOST}/OU=vpn1/CN=someone@${APP_HOST}"
+export ID_ED25519_URL=http://${APP_HOST}:8882/data/id_ed25519.pub
+export ID_ED25519_URLS=https://${APP_HOST}:8883/data/id_ed25519.pub
+export SUBJECT="/C=US/ST=New-York/L=NYC/O=${APP_HOST}/OU=vpn0/CN=someone@${APP_HOST}"
 
 # local variables:
 # mode: shell-script

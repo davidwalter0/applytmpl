@@ -21,9 +21,9 @@ import (
 
 // App application configuration struct
 type App struct {
-	DNSNames     []string `json:"dnsnames" doc:"comma separated list of dns names" default:"example.com"`
-	Country      []string `json:"country" doc:"comma separated list of country abbrev" default:"US"`
-	Organization []string `json:"org" doc:"comma separated list of organizations" default:"example.com"`
+	DNSNames     []string `json:"dnsnames" doc:"comma separated list of dns names"`
+	Country      []string `json:"country" doc:"comma separated list of country abbrev"`
+	Organization []string `json:"org" doc:"comma separated list of organizations"`
 	Cert         string   `json:"cert" doc:"cert file path" default:"certs/cert.pem"`
 	Key          string   `json:"key"  doc:"key file path" default:"certs/server.pem"`
 }
@@ -32,11 +32,22 @@ var app *App = &App{}
 var err error
 
 func main() {
-	if err = cfg.Eval(app); err != nil {
+
+	// if err = cfg.Flags(app); err != nil {
+	if err = cfg.Nest(app); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+	cfg.Freeze()
 
+	var text []byte
+	text, err = json.MarshalIndent(app, "", "  ")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(0)
+	}
+
+	fmt.Println(string(text))
 	if true {
 		var j = []byte{}
 		if j, err = json.MarshalIndent(app, "", "  "); err != nil {

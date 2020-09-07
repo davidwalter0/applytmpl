@@ -20,7 +20,7 @@ var trace = tracer.New()
 var debugging = false
 
 var done = make(chan bool)
-var app App
+var app = &App{}
 
 // App application configuration struct
 type App struct {
@@ -49,13 +49,39 @@ func Now() string {
 var prefix = ""
 
 func init() {
-	if err = cfg.Wrap("APP", &app); err != nil {
+	if err = cfg.Nest(app); err != nil {
 		log.Fatalf("%v\n", err)
 	}
 	cfg.Freeze()
+
 	array := strings.Split(os.Args[0], "/")
 	me := array[len(array)-1]
 	fmt.Println(me, "version built at:", Build, "commit:", Commit)
+}
+
+func A() {
+	// create file server handler
+	fs := http.FileServer(http.Dir(app.Path))
+
+	// handle `/` route
+	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+
+	// })
+
+	http.Handle("/data/", http.StripPrefix("/data", fs))
+	http.Handle("/", fs)
+
+	// handle `/static` route
+	// http.Handle("/static", fs)
+}
+
+func logHandler(h http.Handler) http.Handler {
+	handle := h.ServeHTTP
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Before")
+		defer log.Println("After")
+		handle(w, r)
+	})
 }
 
 func run() {
@@ -65,12 +91,26 @@ func run() {
 	fmt.Println("PORT on which  " + ":" + app.Port)
 	fmt.Println("HOST interface " + ":" + app.Host)
 	fmt.Printf("HTTPS/Listening on %s:%s and serving path: %s\n", app.Host, app.Port, app.Path)
+	// pathHandler := logHandler(http.FileServer(http.Dir(app.Path))).ServeHTTP
+
+	http.HandleFunc("/exit", exitHandler)
+	// http.HandleFunc("/data/", pathHandler)
+	A()
+
 	go vanillaServe(app.Host, app.Port)
 	url := fmt.Sprintf("%s:%s", app.Host, app.Port)
-	err := http.ListenAndServeTLS(url, app.Cert, app.Key, http.FileServer(http.Dir(app.Path)))
+	err := http.ListenAndServeTLS(url, app.Cert, app.Key, nil)
 	if err != nil {
 		log.Fatal(url, err)
 	}
+}
+
+func exitHandler(w http.ResponseWriter, r *http.Request) {
+	go func() {
+		time.Sleep(time.Second)
+		os.Exit(0)
+	}()
+	w.Write([]byte("Exiting\n"))
 }
 
 func vanillaServe(host, port string) {
@@ -78,9 +118,8 @@ func vanillaServe(host, port string) {
 	p, _ := strconv.Atoi(port)
 	p-- // http port = port - 1
 	port = fmt.Sprintf("%d", p)
-	fmt.Printf("HTTP /Listening on %s:%s and serving path: %s\n", app.Host, port, app.Path)
 	listen := fmt.Sprintf("%s:%s", host, port)
-	fmt.Println(http.ListenAndServe(listen, http.FileServer(http.Dir(app.Path))))
+	fmt.Println(http.ListenAndServe(listen, nil))
 }
 
 func validate() {

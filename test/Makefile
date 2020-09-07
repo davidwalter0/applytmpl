@@ -28,14 +28,14 @@ build:
 	make -C ../ bin/applytmpl
 
 test: build
-	./run &
-	. data/environment; \
-	until curl -s -k https://$${APP_HOST}:$${APP_PORT}/ &> /dev/null; do \
-		sleep 5; \
-	done
-	. data/environment; \
-	cat data/apply-test.tmpl | ../bin/applytmpl; EXIT=$$? ; \
-	kill -9 $$(pgrep simple-server); exit $${EXIT}
+	./run &									\
+	. data/environment;							\
+	until curl -s -k https://$${APP_HOST}:$${APP_PORT}/ &> /dev/null; do	\
+		sleep 5;							\
+	done;									\
+	. data/environment;							\
+	cat data/apply-test.tmpl | ../bin/applytmpl; EXIT=$$? ;			\
+	curl -k https://${APP_HOST}:${APP_PORT}/exit; exit $${EXIT}
 
 	echo '{{ file2string "certs/server.key" | publicKey }}'| ../bin/applytmpl
 

@@ -1,3 +1,4 @@
+{{ $root := cat "https://" .AppHost ":" .AppPort }}
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -68,19 +69,19 @@ metadata:
   value: '{{ zip "a b c" "1 2 3" "." | base64Encode | base64Decode }}'
 
 - name: curlraw
-  value: '{{ curl "http://example.com:8882/raw" }}'
+  value: '{{ cat $root "/raw" | curl }}'
 
 - name: curlb64
-  value: '{{ curl "http://example.com:8882/base64" }}'
+  value: '{{ cat $root "/base64" | curl }}'
 
 - name: curl
-  value: '{{ curl "http://example.com:8882/raw" }}'
+  value: '{{ cat $root "/raw" | curl}}'
 
 - name: curl_encode
-  value: '{{ curl "http://example.com:8882/raw" | base64Encode }}'
+  value: '{{ cat $root "/raw" | curl | base64Encode }}'
 
 - name: curl_decode
-  value: '{{ curl "http://example.com:8882/base64" | base64Decode }}'
+  value: '{{ cat $root "/base64" | curl | base64Decode }}'
 
 - name: generator1
   value: |
