@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"text/template"
@@ -38,17 +39,27 @@ func init() {
 func Usage() {
 	fmt.Printf(`
 Usage: %s [--help]
-
+ 
 Setting the environment variable HELP=(true,1,t,T) will print this
 help
 
+%s version 
+
+prints the build information
+
 Override delimiters for mixed template processing arguments by setting
 the environment variable "OVERRIDE_TEMPLATE_DELIMS" to a comma
-delimited pair of sequences OVERRIDE_TEMPLATE_DELIMS=">>,<<" or "{%,%}"
+delimited pair of sequences:
+e.g.
+
+OVERRIDE_TEMPLATE_DELIMS=">>,<<" 
+or 
+OVERRIDE_TEMPLATE_DELIMS="{%%,%%}"
 
 Method names exposed for templates
 ----------------------------------
-`, os.Args[0])
+`, os.Args[0], path.Base(os.Args[0]))
+
 	names := SortableStrings{}
 	for name := range TemplateFunctions {
 		names = append(names, name)
