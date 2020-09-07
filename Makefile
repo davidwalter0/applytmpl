@@ -31,9 +31,9 @@ $(target): Makefile $(wildcard *.go cmd/applytmpl/*.go)
 # 	# CGO_ENABLED=0 go install -tags netgo
 
 # export HOSTNAME=$(shell hostname)
-export dirty=$(shell git diff --no-ext-diff --quiet|| echo \-dirty)
+export dirty=$$(git diff --no-ext-diff --quiet|| echo \-dirty)
 # $(target) : $(wildcard *.go) Makefile
-export args="-s -w -X main.Version=$(shell tag=$$(git tag --points-at HEAD); if [[ -z $${tag:-} ]]; then echo untagged-commit; fi) -X main.Build=$(shell date -u +%Y.%m.%d.%H.%M.%S.%z) -X main.Commit=$(shell git log --format=%hash$${dirty}-%aI -n1)"
+export args="-s -w -X main.Version=$(shell tag=$$(git tag --points-at HEAD); if [[ -z $${tag:-} ]]; then echo untagged-commit; else echo $${tag}; fi) -X main.Build=$$(date -u +%Y.%m.%d.%H.%M.%S.%z) -X main.Commit=$$(git log --format=%h${dirty}-%aI -n1)"
 
 .PHONY: build
 build: $(target)
