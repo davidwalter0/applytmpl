@@ -13,6 +13,7 @@ import (
 	"text/template"
 
 	"github.com/davidwalter0/applytmpl"
+	"github.com/davidwalter0/applytmpl/doc"
 )
 
 var err error
@@ -65,8 +66,13 @@ Method names exposed for templates
 		names = append(names, name)
 	}
 
+	fmt.Printf("%-32s%s\n", "template function name", "function description")
+	fmt.Printf("%-32s%s\n", "--------------------------------", "--------------------------------")
 	for _, name := range names.Sort() {
-		fmt.Println(name)
+		infoArray := strings.Split(doc.Info(applytmpl.TemplateFunctions[name]), "\n")
+		info := strings.Join(infoArray, "\n                                ")
+		// fmt.Printf("%-32s %s\n", "template function name", "function description")
+		fmt.Printf("%-32s%s\n", name, info)
 	}
 	os.Exit(0)
 }

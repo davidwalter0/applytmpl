@@ -79,9 +79,11 @@ var TemplateFunctions = template.FuncMap{
 var debug bool
 var debugText string
 
+// Slice takes a list and returns an array.
 func Slice(v ...interface{}) []interface{} {
 	return v
 }
+
 func trace() {
 	pc := make([]uintptr, 10)
 	runtime.Callers(10, pc)
@@ -95,14 +97,16 @@ func trace() {
 	}
 }
 
+// HostArchitecture returns the go runtime's architecture
 func HostArchitecture() string {
 	return runtime.GOARCH
 }
 
+// DefaultValue returns the last value from a list
 func DefaultValue(args ...string) string {
 	r := ""
-	for i, arg := range args {
-		fmt.Printf("DefaultValue: %d %s\n", i, runtime.GOARCH)
+	for _, arg := range args {
+		// fmt.Printf("DefaultValue: %d %s\n", i, runtime.GOARCH)
 		r = arg
 	}
 	return r
@@ -448,7 +452,7 @@ func UCase(s string) string {
 	return s
 }
 
-// Lower downcase string
+// Lower case a string
 func Lower(s string) string {
 	s = Trim(s)
 	if len(s) > 0 {
@@ -457,7 +461,7 @@ func Lower(s string) string {
 	return s
 }
 
-// Upper upcase string
+// Upper case a string
 func Upper(s string) string {
 	s = Trim(s)
 	if len(s) > 0 {
@@ -489,28 +493,39 @@ var envMap = template.FuncMap{
 // 	return
 // }
 
+// Increment integer argument by 1
 func Increment(l interface{}) string {
 	return fmt.Sprintf("%d", ToInt(l)+1)
 }
+
+// Decrement integer argument by 1
 func Decrement(l interface{}) string {
 	return fmt.Sprintf("%d", ToInt(l)-1)
 }
 
+// Add simple integer addition value returned as string
 func Add(l, r interface{}) string {
 	return fmt.Sprintf("%d", ToInt(l)+ToInt(r))
 }
 
+// Sub simple integer subtraction value returned as string
 func Sub(l, r interface{}) string {
 	return fmt.Sprintf("%d", ToInt(l)-ToInt(r))
 }
+
+// Div simple integer division value returned as string
 func Div(l, r interface{}) string {
 	//	l, r := SplitDigits(lhs, rhs)
 	return fmt.Sprintf("%d", ToInt(l)/ToInt(r))
 }
+
+// Mult simple integer multiplication value returned as string
 func Mult(l, r interface{}) string {
 	//	l, r := SplitDigits(lhs, rhs)
 	return fmt.Sprintf("%d", ToInt(l)*ToInt(r))
 }
+
+// Mod simple integer modulus value returned as string
 func Mod(l, r interface{}) string {
 	//	l, r := SplitDigits(lhs, rhs)
 	return fmt.Sprintf("%d", ToInt(l)%ToInt(r))
@@ -554,7 +569,7 @@ func downCase(text string) string {
 	return downCased
 }
 
-// Set a var in the internal map
+// Set a var name  in the internal template map of vars
 // func Set(k, v string) []string {
 func Set(k, v interface{}) string {
 	Camelize(Trim(ToString(k)), Trim(ToString(v)))
@@ -583,6 +598,7 @@ func UpperLeadingCamelCase(arg string) (text string) {
 	return
 }
 
+// ToString converts arg to string
 func ToString(k interface{}) (s string) {
 	switch k.(type) {
 	case string:
@@ -614,6 +630,7 @@ func ToString(k interface{}) (s string) {
 	return s
 }
 
+// ToStringError converts to string and returns string and error
 func ToStringError(k interface{}) (s string, e error) {
 	switch k.(type) {
 	case string:
@@ -638,6 +655,8 @@ func ToStringError(k interface{}) (s string, e error) {
 }
 
 // davidwalter0/api-driver/dispatch/jpath.go
+
+// ToInt convert interface arg to integer type
 func ToInt(k interface{}) (i int) {
 	var err error
 	var s string
@@ -691,6 +710,7 @@ func atoi(s string) (int, error) {
 
 type char byte
 
+// String convert a char to a string
 func (c char) String() string {
 	return string(c)
 }
