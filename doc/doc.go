@@ -1,3 +1,7 @@
+// Modified from
+// https://stackoverflow.com/a/54588577/1470495
+// Author permission given: You may adjust it upon your own needs.
+
 package doc
 
 import (
